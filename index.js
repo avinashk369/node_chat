@@ -7,31 +7,24 @@ var io = require("socket.io")(server);
 
 //middlewre
 app.use(express.json());
-var clients = {};
 
 io.on("connection", (socket) => {
   console.log("connetetd");
   console.log(socket.id, "has joined");
   socket.on("signin", (id) => {
-    console.log(id);
-    clients[id] = socket;
-    console.log(clients);
+    console.log(id.id+" socket id "+socket.id);
+    io.to(id.id).emit("message", id);
   });
 
   //send message to the target user
   socket.on("message", (msg) => {
     console.log(msg);
-    let targetId = msg.targetId;
-    console.log("Avinash"+clients[targetId]);
-    if (clients[targetId]) clients[targetId].emit("message", msg);
+    //if (clients[targetId]) 
+    for(var i=0;i<10;i++)
+      io.to(msg.targetId).emit("message", msg);
   });
 
-  //typing indicator
-  socket.on('typing', function name(data) {
-    console.log(data);
-    io.emit('typing', data)
-  })
-
+  
   socket.on('disconnect', function () {
     console.log('client disconnect...', socket.id)
     // handleDisconnect()
@@ -43,6 +36,7 @@ io.on("connection", (socket) => {
   })
 });
 
-server.listen(port, "0.0.0.0", () => {
-  console.log("server started");
+server.listen(port, "0.0.0.0", (err) => {
+  if (err) throw err
+  console.log('Listening on port %d', port);
 });
